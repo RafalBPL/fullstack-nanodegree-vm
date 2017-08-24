@@ -54,7 +54,7 @@ Clear out all the match records from the database.
 ### deleteScore():
 Remove all the score records from the database.
 
-#### playerStandings()
+### playerStandings()
 Returns a list of (id, name, wins, matches) for each player, sorted by the number of wins each player has.
 
 ### swissPairings()
