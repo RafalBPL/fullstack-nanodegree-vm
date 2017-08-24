@@ -4,25 +4,48 @@
 #
 
 import psycopg2
+import math
 
 
 def connect():
-    """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+   """Connect to the PostgreSQL database.  Returns a database connection."""
+   return psycopg2.connect("dbname=tournament")
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-
-
+    conn = connect()
+    c = conn.cursor()
+    c.execute("DELETE FROM matches;")
+    conn.commit()
+    c.close()
+    
 def deletePlayers():
     """Remove all the player records from the database."""
-
+    conn = connect()
+    c = conn.cursor()
+    c.execute("DELETE FROM players;")
+    conn.commit()
+    conn.close()
+#deletePlayers()
+def deleteScore():
+    """Remove all the score records from the database."""
+    conn = connect()
+    c = conn.cursor()
+    c.execute("DELETE FROM score;")
+    conn.commit()
+    conn.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM players;")
+    count = c.fetchall()
+    c.close()
+    return count[0][0]
 
-
+    
 def registerPlayer(name):
     """Adds a player to the tournament database.
   
@@ -32,7 +55,13 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    conn = connect()
+    c = conn.cursor()
+    c.execute("INSERT INTO players (name) VALUES (%s);", (name, ))
+    conn.commit()
+    conn.close()
 
+#registerPlayer('rafal')
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -47,6 +76,27 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    deleteScore()
+    conn = connect()
+    c = conn.cursor()
+    c.execute("""SELECT players.id, players.name, 
+              COUNT(CASE players.id WHEN win THEN 1 ELSE NULL END) AS wins, 
+              COUNT(matches.win) AS matches
+              FROM players 
+              LEFT JOIN matches ON players.id IN (win, loss)
+              GROUP BY  players.id, name
+              ORDER BY wins DESC;
+              """)
+    info = c.fetchall()
+    """ Add total number of wins and total number of matches into table"""
+    for player in info:
+        c.execute("""INSERT INTO score (id, tot_win, tot_matches)
+                     VALUES(%s, %s, %s)""",(player[0], player[2], player[3], ))
+        conn.commit()
+    c.close()
+    return info
+
+#print(playerStandings())
 
 
 def reportMatch(winner, loser):
@@ -56,8 +106,21 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
- 
+    conn = connect()
+    c = conn.cursor()
+    c.execute("""SELECT COUNT(*) FROM matches WHERE win = (%s) OR loss = (%s);""", (winner,winner))
+    win = c.fetchall()
+    
+    game = win[0][0]    
+    c.execute("""INSERT INTO matches (game,win, loss) 
+                  VALUES ((%s),(%s),(%s)) 
+                  """, (game ,winner, loser))
+    conn.commit()
+    c.close()
+    return(win)
+
+#print(reportMatch(105,106))
+
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
   
@@ -73,5 +136,23 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    # first update player stats 
+    playerStandings()
+    conn = connect()
+    c = conn.cursor()
+    c.execute("""SELECT score.id, players.name FROM score, players 
+                  WHERE players.id = score.id 
+                  ORDER BY tot_win;""")
 
+    playerScore = c.fetchall()
+    # players play in one match
+    n = 2
+    game = [playerScore[i:i+n] for i in range(0, len(playerScore), n)]
+    
+    # make final pairs
+    finalPairs = [game[i][0] + game[i][1] for i in range(len(game))]
+    
+    return finalPairs
+        
+#print(swissPairings())
 
