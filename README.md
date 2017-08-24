@@ -1,12 +1,13 @@
-Project Description: Tournament Planner
-In this project, you’ll be writing a Python module that uses the PostgreSQL database to keep track of players and matches in a game tournament.
+# Project Description: Tournament Planner
 
-The game tournament will use the Swiss system for pairing up players in each round: players are not eliminated, and each player should be paired with another player with the same number of wins, or as close as possible.
+  In this project, you’ll be writing a Python module that uses the PostgreSQL database to keep track of players and matches in a game tournament.
+  
+  The game tournament will use the Swiss system for pairing up players in each round: players are not eliminated, and each player should be paired with another player with the same number of wins, or as close as possible.
 
-This project has two parts: defining the database schema (SQL table definitions), and writing the code that will use it.
+  This project has two parts: defining the database schema (SQL table definitions), and writing the code that will use it.
 
-Code Templates
-The templates for this project are in the tournament subdirectory of your VM’s /vagrant directory. You’ll find three files there: tournament.sql, tournament.py, and tournament_test.py.
+## Code Templates
+The templates for this project are in the <b> tournament </b>  subdirectory of your VM’s /vagrant directory. You’ll find three files there: tournament.sql, tournament.py, and tournament_test.py.
 
 The template file tournament.sql is where you will put the database schema, in the form of SQL create table commands. Give your tables names that make sense to you, and give the columns descriptive names. You'll also need to create the database itself; see below.
 
